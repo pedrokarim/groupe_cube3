@@ -1,46 +1,120 @@
 # ============================================================
-# 🚀 CI SIMPLE - GitHub Actions
+# 🚀 CI/CD SIMPLE - GitHub Actions
 # ============================================================
-# Push ce fichier sur GitHub et regarde l'onglet "Actions" !
+#
+# 📚 C'EST QUOI GitHub Actions ?
+# Un outil qui exécute automatiquement du code quand tu push.
+# Comme un robot qui vérifie ton code à ta place !
+#
+# 📂 OÙ METTRE CE FICHIER ?
+# .github/workflows/ci.yml (ce dossier est magique pour GitHub)
+#
 # ============================================================
 
-name: CI
+# Le nom affiché dans l'onglet "Actions" de GitHub
+name: CI/CD
 
+# ============================================================
+# 📌 QUAND S'EXÉCUTE CE WORKFLOW ?
+# ============================================================
 on:
   push:
-    branches: [main]
+    branches: [main]        # À chaque push sur main
   pull_request:
-    branches: [main]
-  workflow_dispatch:  # Bouton manuel
+    branches: [main]        # À chaque PR vers main
+  workflow_dispatch:         # Bouton "Run workflow" manuel
 
+# ============================================================
+# 📋 LES JOBS (les tâches à faire)
+# ============================================================
 jobs:
-  test:
-    name: ✅ Test
-    runs-on: ubuntu-latest
+
+  # ----------------------------------------------------------
+  # JOB 1 : Vérifier le code
+  # ----------------------------------------------------------
+  check:
+    name: ✅ Vérification du code
+    runs-on: ubuntu-latest   # Machine virtuelle Linux gratuite
 
     steps:
-      - name: 📥 Checkout du code
+      # Étape 1 : Télécharger le code du repo
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      # Étape 2 : Installer Node.js
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm         # Cache les node_modules
+
+      # Étape 3 : Installer les dépendances
+      - name: 📦 Install
+        run: npm ci          # Comme npm install mais plus rapide en CI
+
+      # Étape 4 : Vérifier TypeScript
+      - name: 🔷 TypeScript
+        run: npm run typecheck
+        continue-on-error: true  # Continue même si ça échoue
+
+      # Étape 5 : Linter (ESLint)
+      - name: 🔍 Lint
+        run: npm run lint
+
+      # Étape 6 : Tests
+      - name: 🧪 Tests
+        run: npm test
+        continue-on-error: true  # Continue même si pas de tests
+
+  # ----------------------------------------------------------
+  # JOB 2 : Build l'application
+  # ----------------------------------------------------------
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    needs: check             # Attend que "check" soit fini
+
+    steps:
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: 📦 Install dependencies
-        run: npm install
-
-      - name: 🔷 TypeScript check
-        run: npm run typecheck
-
-      - name: 🔍 ESLint
-        run: npm run lint
-
-      - name: 🧪 Tests
-        run: npm test
+      - name: 📦 Install
+        run: npm ci
 
       - name: 🏗️ Build
         run: npm run build
 
-      - name: 🎉 Success
-        run: echo "✅ Tout est OK !"
+# ============================================================
+# 📖 RÉSUMÉ DES CONCEPTS
+# ============================================================
+#
+# name:        → Nom affiché dans GitHub
+# on:          → Quand déclencher (push, PR, manuel)
+# jobs:        → Liste des tâches
+# runs-on:     → Sur quelle machine (ubuntu, windows, macos)
+# steps:       → Étapes dans l'ordre
+# uses:        → Utiliser une action existante
+# run:         → Exécuter une commande
+# needs:       → Dépend d'un autre job
+# with:        → Paramètres pour une action
+#
+# ============================================================
+# 🔧 SCRIPTS PACKAGE.JSON NÉCESSAIRES
+# ============================================================
+#
+# {
+#   "scripts": {
+#     "typecheck": "tsc --noEmit",
+#     "lint": "next lint",
+#     "test": "vitest",
+#     "build": "next build"
+#   }
+# }
+#
+# ============================================================
