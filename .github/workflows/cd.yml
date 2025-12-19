@@ -1,0 +1,62 @@
+name: CD
+
+on:
+  # Après que la CI a réussi
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types: [completed]
+
+  # Bouton manuel
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    name: 🐳 Build & Push Image
+    runs-on: ubuntu-latest
+
+    # Ne build que si la CI a réussi (ou manuel)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to GitHub Container Registry # Connexion à GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN est automatique, pas besoin de le configurer !
+
+      - name: 🏷️ Extract metadata # Génère les tags de l'image
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+          # Génère : sha-abc1234, main, latest
+
+      - name: 🐳 Build and Push # Build et push l'image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: 🎉 Success
+        run: |
+          echo "✅ Image poussée sur ghcr.io/${{ github.repository }}"
+          echo "🏷️ Tags: ${{ steps.meta.outputs.tags }}"
