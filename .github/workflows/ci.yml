@@ -1,22 +1,5 @@
-# ============================================================
-# 🚀 CI/CD SIMPLE - GitHub Actions
-# ============================================================
-#
-# 📚 C'EST QUOI GitHub Actions ?
-# Un outil qui exécute automatiquement du code quand tu push.
-# Comme un robot qui vérifie ton code à ta place !
-#
-# 📂 OÙ METTRE CE FICHIER ?
-# .github/workflows/ci.yml (ce dossier est magique pour GitHub)
-#
-# ============================================================
+name: CI
 
-# Le nom affiché dans l'onglet "Actions" de GitHub
-name: CI/CD
-
-# ============================================================
-# 📌 QUAND S'EXÉCUTE CE WORKFLOW ?
-# ============================================================
 on:
   push:
     branches: [main]        # À chaque push sur main
@@ -24,14 +7,7 @@ on:
     branches: [main]        # À chaque PR vers main
   workflow_dispatch:         # Bouton "Run workflow" manuel
 
-# ============================================================
-# 📋 LES JOBS (les tâches à faire)
-# ============================================================
 jobs:
-
-  # ----------------------------------------------------------
-  # JOB 1 : Vérifier le code
-  # ----------------------------------------------------------
   check:
     name: ✅ Vérification du code
     runs-on: ubuntu-latest   # Machine virtuelle Linux gratuite
@@ -66,9 +42,6 @@ jobs:
         run: npm test
         continue-on-error: true  # Continue même si pas de tests
 
-  # ----------------------------------------------------------
-  # JOB 2 : Build l'application
-  # ----------------------------------------------------------
   build:
     name: 🏗️ Build
     runs-on: ubuntu-latest
@@ -89,32 +62,3 @@ jobs:
 
       - name: 🏗️ Build
         run: npm run build
-
-# ============================================================
-# 📖 RÉSUMÉ DES CONCEPTS
-# ============================================================
-#
-# name:        → Nom affiché dans GitHub
-# on:          → Quand déclencher (push, PR, manuel)
-# jobs:        → Liste des tâches
-# runs-on:     → Sur quelle machine (ubuntu, windows, macos)
-# steps:       → Étapes dans l'ordre
-# uses:        → Utiliser une action existante
-# run:         → Exécuter une commande
-# needs:       → Dépend d'un autre job
-# with:        → Paramètres pour une action
-#
-# ============================================================
-# 🔧 SCRIPTS PACKAGE.JSON NÉCESSAIRES
-# ============================================================
-#
-# {
-#   "scripts": {
-#     "typecheck": "tsc --noEmit",
-#     "lint": "next lint",
-#     "test": "vitest",
-#     "build": "next build"
-#   }
-# }
-#
-# ============================================================
