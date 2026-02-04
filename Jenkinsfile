@@ -26,7 +26,6 @@ pipeline {
                     '''
                 }
 
-                cleanWs()
                 checkout scm
 
                 script {
